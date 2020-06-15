@@ -1,0 +1,63 @@
+<!--Captcha demo html-->
+<!--Demo code only can run on browser that supported es6 script-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <style>
+        .captcha__div {
+            min-height: 76px;
+        }
+    </style>
+    <script
+            src="https://code.jquery.com/jquery-3.5.1.js"
+            integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="captcha">
+    <div id="captcha_image_div" class="captcha__div"></div>
+    <label>
+        <span>verification code:</span>
+        <input id="captcha_ans" name="captcha_ans" type="text">
+    </label>
+    <button id="captcha_validate_btn">verify</button>
+</div>
+
+<script>
+    $.ajax({
+        url: '/captcha/create'
+    }).done(res => {
+        console.log(res['b64Image']);
+        console.log(res['encAns']);
+
+        const image = new Image();
+        image.id = 'captcha_image';
+        image.dataset.enc_ans = res['encAns'];
+        image.src = 'data:image/png;base64,' + res['b64Image'];
+        image.onload = () => {
+            document.getElementById('captcha_image_div').appendChild(image);
+        };
+    });
+
+    document.getElementById('captcha_validate_btn').addEventListener('click', () => {
+        const ansIpt = document.getElementById('captcha_ans');
+        const ans = ansIpt.value;
+
+        const captchaImage = document.getElementById('captcha_image');
+        const encAns = captchaImage.dataset.enc_ans;
+
+        $.ajax({
+            url: '/captcha/validate',
+            type: "POST",
+            dataType: 'json',
+            data: {ans, encAns}
+        }).done(res => {
+            alert('驗證結果:' + res['isPass']);
+        });
+    });
+</script>
+</body>
+</html>
